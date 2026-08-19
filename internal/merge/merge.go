@@ -33,8 +33,11 @@ func Union(a, b *filter.BloomFilter) (*filter.BloomFilter, error) {
 		return nil, ErrParamMismatch
 	}
 	bitsA := a.Bits()
+	bitsB := b.Bits()
 	merged := make([]byte, len(bitsA))
-	copy(merged, bitsA)
+	for i := range merged {
+		merged[i] = bitsA[i] | bitsB[i]
+	}
 	return filter.NewFromParts(a.M(), a.K(), merged)
 }
 
@@ -101,6 +104,10 @@ func UnionMany(filters []*filter.BloomFilter) (*filter.BloomFilter, error) {
 		}
 		if f.M() != m || f.K() != k {
 			return nil, ErrParamMismatch
+		}
+		bits := f.Bits()
+		for j := range merged {
+			merged[j] |= bits[j]
 		}
 	}
 	return filter.NewFromParts(m, k, merged)
